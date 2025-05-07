@@ -1,231 +1,274 @@
 import React, { useState } from 'react';
-
-interface Branch {
-  id: string;
-  name: string;
-}
-
-interface StudentData {
-  name: string;
-  address?: string;
-  fatherName?: string;
-  motherName?: string;
-  aadharNumber?: string;
-  phoneNumber?: string;
-  profileImageUrl?: string;
-  aadharImageUrl?: string;
-  branchId: string;
-  religion?: string;
-  foodPreference?: string;
-  gender?: string;
-  fee?: number;
-  registrationNumber?: string;
-  roomNumber?: string;
-}
+import api from '../services/api';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface HostelStudentFormProps {
-  branches: Branch[];
-  onSubmit: (studentData: StudentData) => void;
-  initialData?: StudentData;
+  branches: any[];
+  onSubmit: (studentData: any) => void;
+  initialData?: any;
 }
 
 const HostelStudentForm: React.FC<HostelStudentFormProps> = ({ branches, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState<StudentData>({
-    name: initialData?.name || '',
-    address: initialData?.address || '',
-    fatherName: initialData?.fatherName || '',
-    motherName: initialData?.motherName || '',
-    aadharNumber: initialData?.aadharNumber || '',
-    phoneNumber: initialData?.phoneNumber || '',
-    profileImageUrl: initialData?.profileImageUrl || '',
-    aadharImageUrl: initialData?.aadharImageUrl || '',
-    branchId: initialData?.branchId || '',
-    religion: initialData?.religion || '',
-    foodPreference: initialData?.foodPreference || '',
-    gender: initialData?.gender || '',
-    fee: initialData?.fee || 0,
-    registrationNumber: initialData?.registrationNumber || '',
-    roomNumber: initialData?.roomNumber || '',
-  });
+  const [name, setName] = useState(initialData?.name || '');
+  const [address, setAddress] = useState(initialData?.address || '');
+  const [fatherName, setFatherName] = useState(initialData?.fatherName || '');
+  const [motherName, setMotherName] = useState(initialData?.motherName || '');
+  const [aadharNumber, setAadharNumber] = useState(initialData?.aadharNumber || '');
+  const [phoneNumber, setPhoneNumber] = useState(initialData?.phoneNumber || '');
+  const [branchId, setBranchId] = useState(initialData?.branchId || '');
+  const [profileImageUrl, setProfileImageUrl] = useState(initialData?.profileImageUrl || '');
+  const [aadharImageUrl, setAadharImageUrl] = useState(initialData?.aadharImageUrl || '');
+  const [religion, setReligion] = useState(initialData?.religion || '');
+  const [foodPreference, setFoodPreference] = useState(initialData?.foodPreference || '');
+  const [gender, setGender] = useState(initialData?.gender || '');
+  const [fee, setFee] = useState(initialData?.fee || '');
+  const [registrationNumber, setRegistrationNumber] = useState(initialData?.registrationNumber || '');
+  const [roomNumber, setRoomNumber] = useState(initialData?.roomNumber || '');
+  const [uploading, setUploading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'fee' || name === 'branchId' ? Number(value) || value : value,
-    }));
+  const handleImageUpload = async (file: File, setUrl: (url: string) => void) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await api.uploadImage(formData);
+      if (!response.imageUrl) throw new Error('No image URL returned');
+      setUrl(response.imageUrl);
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (!name) {
+      toast.error('Name is required');
+      return;
+    }
+    if (!branchId) {
+      toast.error('Branch is required');
+      return;
+    }
+    const studentData = {
+      branchId,
+      name,
+      address,
+      fatherName,
+      motherName,
+      aadharNumber,
+      phoneNumber,
+      profileImageUrl,
+      aadharImageUrl,
+      religion,
+      foodPreference,
+      gender,
+      fee: fee ? parseFloat(fee) : 0.0,
+      registrationNumber,
+      roomNumber,
+    };
+    onSubmit(studentData);
+    if (!initialData) {
+      setName('');
+      setAddress('');
+      setFatherName('');
+      setMotherName('');
+      setAadharNumber('');
+      setPhoneNumber('');
+      setBranchId('');
+      setProfileImageUrl('');
+      setAadharImageUrl('');
+      setReligion('');
+      setFoodPreference('');
+      setGender('');
+      setFee('');
+      setRegistrationNumber('');
+      setRoomNumber('');
+    }
   };
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="branchId" className="block text-sm font-medium text-gray-700">Branch</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
           <select
-            id="branchId"
-            name="branchId"
-            value={formData.branchId}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={branchId}
+            onChange={(e) => setBranchId(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           >
             <option value="">Select Branch</option>
             {branches.map((branch) => (
-              <option key={branch.id} value={branch.id}>{branch.name}</option>
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
           <input
             type="text"
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
+            required
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+          <textarea
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
+            rows={3}
           />
         </div>
         <div>
-          <label htmlFor="fatherName" className="block text-sm font-medium text-gray-700">Father’s Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Father's Name</label>
           <input
             type="text"
-            id="fatherName"
-            name="fatherName"
-            value={formData.fatherName}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={fatherName}
+            onChange={(e) => setFatherName(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="motherName" className="block text-sm font-medium text-gray-700">Mother’s Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mother's Name</label>
           <input
             type="text"
-            id="motherName"
-            name="motherName"
-            value={formData.motherName}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={motherName}
+            onChange={(e) => setMotherName(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="aadharNumber" className="block text-sm font-medium text-gray-700">Aadhar Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Aadhar Number</label>
           <input
             type="text"
-            id="aadharNumber"
-            name="aadharNumber"
-            value={formData.aadharNumber}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={aadharNumber}
+            onChange={(e) => setAadharNumber(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">Phone Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
           <input
             type="text"
-            id="phoneNumber"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="religion" className="block text-sm font-medium text-gray-700">Religion</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Registration Number</label>
           <input
             type="text"
-            id="religion"
-            name="religion"
-            value={formData.religion}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={registrationNumber}
+            onChange={(e) => setRegistrationNumber(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="foodPreference" className="block text-sm font-medium text-gray-700">Food Preference</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
           <input
             type="text"
-            id="foodPreference"
-            name="foodPreference"
-            value={formData.foodPreference}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={roomNumber}
+            onChange={(e) => setRoomNumber(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Fee (in INR)</label>
+          <input
+            type="number"
+            step="0.01"
+            value={fee}
+            onChange={(e) => setFee(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Religion</label>
+          <input
+            type="text"
+            value={religion}
+            onChange={(e) => setReligion(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Food Preference</label>
           <select
-            id="gender"
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            value={foodPreference}
+            onChange={(e) => setFoodPreference(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
           >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
+            <option value="">Select</option>
+            <option value="veg">Veg</option>
+            <option value="non-veg">Non-Veg</option>
           </select>
         </div>
         <div>
-          <label htmlFor="fee" className="block text-sm font-medium text-gray-700">Fee</label>
-          <input
-            type="number"
-            id="fee"
-            name="fee"
-            value={formData.fee}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 transition-colors"
+          >
+            <option value="">Select</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
         </div>
         <div>
-          <label htmlFor="registrationNumber" className="block text-sm font-medium text-gray-700">Registration Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
           <input
-            type="text"
-            id="registrationNumber"
-            name="registrationNumber"
-            value={formData.registrationNumber}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            type="file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file, setProfileImageUrl);
+            }}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-indigo-50 file:text-indigo-700 file:cursor-pointer"
           />
+          {profileImageUrl && <img src={profileImageUrl} alt="Profile" className="mt-2 w-20 h-20 object-cover rounded-md" />}
         </div>
         <div>
-          <label htmlFor="roomNumber" className="block text-sm font-medium text-gray-700">Room Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Aadhar Image</label>
           <input
-            type="text"
-            id="roomNumber"
-            name="roomNumber"
-            value={formData.roomNumber}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            type="file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file, setAadharImageUrl);
+            }}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-indigo-50 file:text-indigo-700 file:cursor-pointer"
           />
+          {aadharImageUrl && <img src={aadharImageUrl} alt="Aadhar" className="mt-2 w-20 h-20 object-cover rounded-md" />}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={handleSubmit}
-        className="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700"
-      >
-        {initialData ? 'Update Student' : 'Add Student'}
-      </button>
-    </div>
+      <div className="flex space-x-4">
+        <button
+          type="submit"
+          disabled={uploading}
+          className="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:bg-indigo-400"
+        >
+          {uploading ? 'Uploading...' : initialData ? 'Update Student' : 'Add Student'}
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 };
 
