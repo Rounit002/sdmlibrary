@@ -69,6 +69,8 @@ module.exports = (pool) => {
         food_preference,
         gender,
         fee,
+        registration_number,
+        room_number,
       } = req.body;
 
       if (!name) {
@@ -86,8 +88,8 @@ module.exports = (pool) => {
 
       const result = await pool.query(
         `INSERT INTO hostel_students (
-          branch_id, name, address, father_name, mother_name, aadhar_number, phone_number, profile_image_url, aadhar_image_url, religion, food_preference, gender, fee
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+          branch_id, name, address, father_name, mother_name, aadhar_number, phone_number, profile_image_url, aadhar_image_url, religion, food_preference, gender, fee, registration_number, room_number
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
         [
           parsedBranchId,
           name,
@@ -102,6 +104,8 @@ module.exports = (pool) => {
           food_preference || null,
           gender || null,
           fee || 0.0,
+          registration_number || null,
+          room_number || null,
         ]
       );
       console.log('POST /hostel/students - Created student:', result.rows[0]);
@@ -135,6 +139,8 @@ module.exports = (pool) => {
         food_preference,
         gender,
         fee,
+        registration_number,
+        room_number,
       } = req.body;
 
       const parsedBranchId = branch_id ? parseInt(branch_id) : undefined;
@@ -158,8 +164,10 @@ module.exports = (pool) => {
           food_preference = COALESCE($11, food_preference),
           gender = COALESCE($12, gender),
           fee = COALESCE($13, fee),
+          registration_number = COALESCE($14, registration_number),
+          room_number = COALESCE($15, room_number),
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $14 RETURNING *`,
+        WHERE id = $16 RETURNING *`,
         [
           parsedBranchId,
           name,
@@ -174,6 +182,8 @@ module.exports = (pool) => {
           food_preference,
           gender,
           fee,
+          registration_number,
+          room_number,
           parsedId,
         ]
       );

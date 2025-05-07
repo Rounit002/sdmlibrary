@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import { ArrowLeft } from 'lucide-react';
-import SDMLibLogo from './SDMLibLogo.jpg'; // Import the image
+import SDMLibLogo from './SDMLibLogo.jpg';
 
 const HostelStudentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,9 +35,6 @@ const HostelStudentDetails: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Full-width Image Section */}
-
-      {/* Back Button and Header */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
@@ -62,16 +59,14 @@ const HostelStudentDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Student Details Card */}
       <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-        {/* Images */}
         <div className="w-full">
-        <img
-          src={SDMLibLogo}
-          alt="SDM Boy's Hostel Banner"
-          className="w-full h-auto object-cover"
-        />
-      </div>
+          <img
+            src={SDMLibLogo}
+            alt="SDM Boy's Hostel Banner"
+            className="w-full h-auto object-cover"
+          />
+        </div>
         <div className="flex space-x-4">
           {student.profileImageUrl && (
             <img
@@ -89,9 +84,10 @@ const HostelStudentDetails: React.FC = () => {
           )}
         </div>
 
-        {/* Details Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
+            
+            { label: 'Registration Number', value: student.registrationNumber || 'N/A' },
             { label: 'Name', value: student.name || 'N/A' },
             { label: 'Address', value: student.address || 'N/A' },
             { label: 'Father’s Name', value: student.fatherName || 'N/A' },
@@ -103,6 +99,7 @@ const HostelStudentDetails: React.FC = () => {
             { label: 'Religion', value: student.religion || 'N/A' },
             { label: 'Food Preference', value: student.foodPreference || 'N/A' },
             { label: 'Gender', value: student.gender || 'N/A' },
+            { label: 'Room Number', value: student.roomNumber || 'N/A' },
           ].map((item, index) => (
             <div key={index} className="flex flex-col">
               <span className="text-sm font-medium text-gray-500">{item.label}</span>

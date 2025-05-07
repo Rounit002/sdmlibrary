@@ -400,6 +400,24 @@ const api = {
     }
   },
 
+  updateHostelBranch: async (id: string, branchData: { name: string }) => {
+    try {
+      const response = await apiClient.put(`/hostel/branches/${id}`, branchData);
+      return response.data.branch;
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
+  deleteHostelBranch: async (id: string) => {
+    try {
+      const response = await apiClient.delete(`/hostel/branches/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
   getHostelStudents: async (branchId?: string) => {
     try {
       const response = await apiClient.get('/hostel/students', { params: { branchId } });
