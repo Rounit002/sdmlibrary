@@ -48,9 +48,11 @@ const setupCronJobs = (pool) => {
     } catch (err) {
       console.error('Error in expiration reminder cron job:', err);
     }
+  }, {
+    timezone: 'Asia/Kolkata'
   });
 
-  console.log('Cron jobs scheduled successfully');
+  console.log('Cron jobs scheduled successfully in Asia/Kolkata timezone');
 };
 
 module.exports = { setupCronJobs };
