@@ -122,6 +122,8 @@ const HostelPage = () => {
   if (isLoading) return <div className="p-6 animate-pulse">Loading...</div>;
   if (error) return <div className="p-6">Error: {error.message}</div>;
 
+  const totalHostelStudents = branches?.reduce((sum, branch) => sum + branch.studentCount, 0) || 0;
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -133,6 +135,18 @@ const HostelPage = () => {
           Back
         </button>
         <h1 className="text-2xl font-bold text-gray-900">Hostel Management</h1>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">Hostel Branches</h2>
+          {/* <p className="text-gray-600">Total Students: <span className="font-bold text-indigo-600">{totalHostelStudents}</span></p> */}
+        </div>
+        <BranchList
+          branches={branches || []}
+          onUpdateBranch={handleUpdateBranch}
+          onDeleteBranch={handleDeleteBranch}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -149,15 +163,6 @@ const HostelPage = () => {
             onSubmit={handleAddStudent}
           />
         </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Branches</h2>
-        <BranchList
-          branches={branches || []}
-          onUpdateBranch={handleUpdateBranch}
-          onDeleteBranch={handleDeleteBranch}
-        />
       </div>
     </div>
   );

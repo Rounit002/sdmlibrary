@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronRight, Users, UserCheck, AlertTriangle } from 'lucide-react';
+import { ChevronRight, Users, UserCheck, AlertTriangle, Building } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import StatCard from '../components/StatCard';
@@ -23,23 +23,36 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [updateList, setUpdateList] = useState(false);
-  const [stats, setStats] = useState({ totalStudents: 0, activeStudents: 0, expiredMemberships: 0 });
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    activeStudents: 0,
+    expiredMemberships: 0,
+    hostelBranchCount: 0,
+  });
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleStudentAdded = () => {
-    setUpdateList(prev => !prev);
+    setUpdateList((prev) => !prev);
     setShowAddForm(false);
     fetchStats();
   };
 
   const fetchStats = async () => {
     try {
-      const response = await api.getStudents();
-      const allStudents = response.students;
+      const studentsResponse = await api.getStudents();
+      const allStudents = studentsResponse.students;
+      const branchesResponse = await api.getHostelBranches();
+      const branches = branchesResponse;
+
       setStats({
         totalStudents: allStudents.length,
-        activeStudents: allStudents.filter((student: any) => new Date(student.membershipEnd) >= new Date() && student.status === 'active').length,
-        expiredMemberships: allStudents.filter((student: any) => new Date(student.membershipEnd) < new Date()).length,
+        activeStudents: allStudents.filter(
+          (student: any) => new Date(student.membershipEnd) >= new Date() && student.status === 'active'
+        ).length,
+        expiredMemberships: allStudents.filter(
+          (student: any) => new Date(student.membershipEnd) < new Date()
+        ).length,
+        hostelBranchCount: branches.length,
       });
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -67,7 +80,7 @@ const Dashboard: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
               <Link to="/students" className="block">
                 <StatCard
                   title="Total Students"
@@ -93,6 +106,15 @@ const Dashboard: React.FC = () => {
                   icon={<AlertTriangle className="h-6 w-6 text-orange-500" />}
                   iconBgColor="bg-orange-100"
                   arrowIcon={<ChevronRight className="h-5 w-5 text-orange-400" />}
+                />
+              </Link>
+              <Link to="/hostel" className="block">
+                <StatCard
+                  title="Hostel Branches"
+                  value={stats.hostelBranchCount}
+                  icon={<Building className="h-6 w-6 text-green-500" />}
+                  iconBgColor="bg-green-100"
+                  arrowIcon={<ChevronRight className="h-5 w-5 text-green-400" />}
                 />
               </Link>
             </div>
