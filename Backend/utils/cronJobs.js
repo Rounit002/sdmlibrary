@@ -2,8 +2,8 @@ const cron = require('node-cron');
 const { sendExpirationReminder } = require('./email');
 
 const setupCronJobs = (pool) => {
-  // Schedule a daily task at midnight to send expiration reminders
-  cron.schedule('*/1 7 * * *', async () => {
+  // Schedule a daily task at 10 AM to send expiration reminders
+  cron.schedule('0 10 * * *', async () => {
     try {
       console.log('Running expiration reminder cron job...');
       // Get settings
@@ -25,20 +25,23 @@ const setupCronJobs = (pool) => {
         return;
       }
 
-      // Calculate the target date
+      // Calculate the date range
+      const currentDate = new Date();
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + daysBefore);
+      
+      const currentDateString = currentDate.toISOString().split('T')[0];
       const targetDateString = targetDate.toISOString().split('T')[0];
 
-      // Get students whose membership ends on the target date
+      // Get students whose membership ends within the date range
       const studentsResult = await pool.query(
-        "SELECT * FROM students WHERE membership_end = $1 AND status = 'active'",
-        [targetDateString]
+        "SELECT * FROM students WHERE membership_end BETWEEN $1 AND $2 AND status = 'active'",
+        [currentDateString, targetDateString]
       );
       const students = studentsResult.rows;
 
       if (students.length === 0) {
-        console.log('No students with memberships expiring on', targetDateString);
+        console.log('No students with memberships expiring between', currentDateString, 'and', targetDateString);
         return;
       }
 
