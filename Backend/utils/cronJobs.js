@@ -3,7 +3,7 @@ const { sendExpirationReminder } = require('./email');
 
 const setupCronJobs = (pool) => {
   // Schedule a daily task at midnight to send expiration reminders
-  cron.schedule('0 0 * * *', async () => {
+  cron.schedule('*/1 7 * * *', async () => {
     try {
       console.log('Running expiration reminder cron job...');
       // Get settings
