@@ -7,14 +7,25 @@ interface NewUserData {
 }
 
 const API_URL = window.cordova
-  ? 'https://sdmlibrary.onrender.com/api'
+  ? 'https://sdmlibrary-erg9.onrender.com/api'
   : process.env.NODE_ENV === 'production'
-    ? 'https://sdmlibrary.onrender.com/api'
+    ? 'https://sdmlibrary-erg9.onrender.com/api'
     : 'http://localhost:3000/api';
+
 const apiClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  timeout: 10000, // Set a 10-second timeout for all requests
 });
+
+// Retry configuration
+const retryConfig = {
+  retries: 3,
+  retryDelay: (retryCount: number) => Math.min(1000 * 2 ** retryCount, 30000), // Exponential backoff
+};
+
+// Track if an alert has been shown to avoid duplicates
+let hasShownNetworkAlert = false;
 
 const transformKeysToCamelCase = (obj: any): any => {
   if (Array.isArray(obj)) {
@@ -56,16 +67,52 @@ apiClient.interceptors.response.use(
     if (response.data && typeof response.data === 'object') {
       response.data = transformKeysToCamelCase(response.data);
     }
+    // Reset network alert flag on successful response
+    hasShownNetworkAlert = false;
     return response;
   },
-  (error) => {
+  async (error) => {
+    const { config } = error;
+
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       console.warn('401 Unauthorized - Redirecting to login:', error.response?.data?.message);
       window.location.href = '/login';
-    } else if (!error.response) {
-      console.error('Network error - please check your connection:', error.message);
-      alert('Unable to connect to the server. Please check your internet connection.');
+      return Promise.reject(error);
     }
+
+    // Handle network errors
+    if (!error.response) {
+      if (!navigator.onLine) {
+        console.error('Network error - device offline:', error.message);
+        if (!hasShownNetworkAlert) {
+          alert('You are offline. Please check your internet connection and try again.');
+          hasShownNetworkAlert = true;
+        }
+        return Promise.reject(new Error('Device is offline'));
+      }
+
+      // Retry the request
+      if (!config.retryCount) {
+        config.retryCount = 0;
+      }
+      if (config.retryCount < retryConfig.retries) {
+        config.retryCount += 1;
+        const delay = retryConfig.retryDelay(config.retryCount);
+        console.warn(`Retrying request (${config.retryCount}/${retryConfig.retries}) after ${delay}ms delay...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return apiClient(config);
+      }
+
+      console.error('Network error - all retries failed:', error.message);
+      if (!hasShownNetworkAlert) {
+        alert('Unable to connect to the server after multiple attempts. Please check your internet connection.');
+        hasShownNetworkAlert = true;
+      }
+      return Promise.reject(new Error('Network error after retries'));
+    }
+
+    // Handle other API errors
     const errorData = error.response?.data || { message: error.message };
     console.error('API Error:', errorData);
     return Promise.reject(new Error(errorData.message || 'An unexpected error occurred'));
@@ -84,7 +131,7 @@ const api = {
         throw new Error('Login failed: Invalid response from server');
       }
     } catch (error: any) {
-      console.error('Login error details:', error.response?.data || error.message);
+      console.error('Login error details:', error.message);
       throw error instanceof Error ? error : new Error('Login failed due to server error');
     }
   },
@@ -95,7 +142,7 @@ const api = {
       console.log('Logout response:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Logout error:', error.response?.data || error.message);
+      console.error('Logout error:', error.message);
       throw error;
     }
   },
@@ -106,7 +153,7 @@ const api = {
       console.log('Auth status check:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Auth status check failed:', error.response?.data || error.message);
+      console.error('Auth status check failed:', error.message);
       throw error;
     }
   },
@@ -285,7 +332,7 @@ const api = {
       console.log('Server response:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Add user error:', error.response?.data || error.message);
+      console.error('Add user error:', error.message);
       throw error instanceof Error ? error : new Error('Failed to add user due to server error');
     }
   },

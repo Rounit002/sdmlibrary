@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../services/api';
-import { Search, ChevronLeft, ChevronRight, Trash2, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Trash2, Eye, ArrowUp, ArrowDown } from 'lucide-react';
 
 // Utility function to format date to YYYY-MM-DD
 const formatDate = (dateString: string | undefined): string => {
@@ -19,8 +19,9 @@ const StudentList: React.FC<StudentListProps> = ({ limit }) => {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [studentsPerPage, setStudentsPerPage] = useState(5); // Lower default for dashboard
+  const [currentPage, setCurrentPage] =useState(1);
+  const [studentsPerPage, setStudentsPerPage] = useState(5);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,7 +70,18 @@ const StudentList: React.FC<StudentListProps> = ({ limit }) => {
     navigate(`/students/${id}`);
   };
 
-  const filteredStudents = students.filter((student: any) =>
+  const handleSort = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  // Sort students based on createdAt
+  const sortedStudents = [...students].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
+  const filteredStudents = sortedStudents.filter((student: any) =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.phone.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -108,7 +120,15 @@ const StudentList: React.FC<StudentListProps> = ({ limit }) => {
                   <th className="px-6 py-3 text-gray-500 font-medium">Name</th>
                   <th className="px-6 py-3 text-gray-500 font-medium hidden md:table-cell">Phone</th>
                   <th className="px-6 py-3 text-gray-500 font-medium">Status</th>
-                  <th className="px-6 py-3 text-gray-500 font-medium hidden md:table-cell">Membership End</th>
+                  <th className="px-6 py-3 text-gray-500 font-medium hidden md:table-cell">
+                    <button
+                      className="flex items-center gap-1 hover:text-purple-600"
+                      onClick={handleSort}
+                    >
+                      Added On
+                      {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                    </button>
+                  </th>
                   <th className="px-6 py-3 text-gray-500 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -126,7 +146,7 @@ const StudentList: React.FC<StudentListProps> = ({ limit }) => {
                         {student.status === 'active' ? 'Active' : 'Expired'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 hidden md:table-cell">{formatDate(student.membershipEnd)}</td>
+                    <td className="px-6 py-4 hidden md:table-cell">{formatDate(student.createdAt)}</td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => handleViewDetails(student.id)}

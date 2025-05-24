@@ -24,6 +24,7 @@ import HostelPage from './pages/HostelPage';
 import BranchStudentsPage from './pages/BranchStudentsPage';
 import HostelStudentDetails from './pages/HostelStudentDetails';
 import EditHostelStudent from './pages/EditHostelStudent';
+import HostelDashboard from './pages/HostelDashboard';
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ function AppRoutes() {
       <Route path="/hostel/students/:id" element={<ProtectedRoute><HostelStudentDetails /></ProtectedRoute>} />
       <Route path="/hostel/students/:id/edit" element={<ProtectedRoute><EditHostelStudent /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/hostel-dashboard" element={<ProtectedRoute><HostelDashboard /></ProtectedRoute>} />
     </Routes>
   );
 }

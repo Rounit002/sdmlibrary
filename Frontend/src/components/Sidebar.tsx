@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Calendar, Settings, ChevronRight, UserCheck, AlertTriangle, Menu, X, Clock, LayoutGrid, Hotel } from 'lucide-react';
+import {
+  Home,
+  Users,
+  Calendar,
+  Settings,
+  ChevronRight,
+  UserCheck,
+  AlertTriangle,
+  Menu,
+  X,
+  Clock,
+  LayoutGrid,
+  Hotel,
+} from 'lucide-react';
 import { useMediaQuery } from 'react-responsive';
-import logo from './logo.png'; // Import the logo directly
+import logo from './logo.png';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -21,8 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
   const menuItems = [
     { path: '/', icon: <Home size={20} />, label: 'Home' },
-    { path: '/students', icon: <Users size={20} />, label: 'Students', hasDropdown: true },
-    { path: '/hostel', icon: <Hotel size={20} />, label: 'Hostel', hasDropdown: true },
+    { path: '/students', icon: <Users size={20} />, label: 'Library Students', hasDropdown: true },
+    { path: '/hostel', icon: <Hotel size={20} />, label: 'Hostel Students', hasDropdown: true },
     { path: '/schedule', icon: <Calendar size={20} />, label: 'Schedule' },
     { path: '/shifts', icon: <Clock size={20} />, label: 'Shifts' },
     { path: '/seats', icon: <LayoutGrid size={20} />, label: 'Seats' },
@@ -33,29 +46,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     <>
       {isMobile && (
         <button
-          className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-md bg-white shadow-md"
+          className="fixed top-4 left-4 z-50 p-2 rounded-md bg-white shadow-md"
           onClick={() => setIsSidebarOpen(true)}
         >
           <Menu size={24} />
         </button>
       )}
+
       {isMobile && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setIsSidebarOpen(false)}
-        ></div>
+        />
       )}
+
       <div
-        className={`h-screen bg-gradient-to-br from-purple-50 to-orange-50 border-r border-gray-100 flex flex-col transition-all duration-300 ${
-          isMobile ? (isSidebarOpen ? 'fixed inset-0 z-50 w-full' : 'hidden') : (effectiveIsCollapsed ? 'w-16' : 'w-64')
+        className={`h-screen flex flex-col border-r border-gray-100 bg-gradient-to-br from-purple-50 to-orange-50 transition-all duration-300 ${
+          isMobile
+            ? isSidebarOpen
+              ? 'fixed inset-0 z-50 w-full'
+              : 'hidden'
+            : effectiveIsCollapsed
+            ? 'w-16'
+            : 'w-64'
         }`}
       >
         <div className="p-4 flex items-center justify-between">
           {!effectiveIsCollapsed && (
             <div className="flex items-center gap-2">
-              <img src={logo} alt="Library Logo" className="h-10 w-10 rounded-full object-cover" />
+              <img src={logo} alt="Logo" className="h-10 w-10 rounded-full object-cover" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-400 text-transparent bg-clip-text">
-                Library Management
+                SDM Library
               </h1>
             </div>
           )}
@@ -64,15 +85,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <X size={20} />
             </button>
           ) : (
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1 rounded-full hover:bg-gray-100"
-            >
-              <ChevronRight size={20} className={`${isCollapsed ? 'rotate-180' : ''}`} />
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-1 rounded-full hover:bg-gray-100">
+              <ChevronRight size={20} className={isCollapsed ? 'rotate-180' : ''} />
             </button>
           )}
         </div>
-        <nav className="flex-1 px-2 py-4">
+
+        <nav className="flex-1 px-2 py-4 overflow-y-auto">
           <ul className="space-y-1">
             {menuItems.map((item) => (
               <li key={item.path}>
@@ -84,12 +103,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       : 'text-gray-700 hover:bg-gray-100'
                   } ${effectiveIsCollapsed ? 'justify-center' : 'justify-between'}`}
                   onClick={(e) => {
-                    if (item.hasDropdown && item.label === 'Students' && !effectiveIsCollapsed) {
+                    if (item.hasDropdown && item.label === 'Library Students' && !effectiveIsCollapsed) {
                       e.preventDefault();
-                      setShowStudentDropdown(!showStudentDropdown);
-                    } else if (item.hasDropdown && item.label === 'Hostel' && !effectiveIsCollapsed) {
+                      setShowStudentDropdown((s) => !s);
+                    } else if (item.hasDropdown && item.label === 'Hostel Students' && !effectiveIsCollapsed) {
                       e.preventDefault();
-                      setShowHostelDropdown(!showHostelDropdown);
+                      setShowHostelDropdown((s) => !s);
                     } else if (isMobile) {
                       setIsSidebarOpen(false);
                     }
@@ -103,66 +122,55 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     <ChevronRight
                       size={18}
                       className={`transition-transform ${
-                        (item.label === 'Students' && showStudentDropdown) || 
-                        (item.label === 'Hostel' && showHostelDropdown) ? 'rotate-90' : ''
+                        (item.label === 'Library Students' && showStudentDropdown) ||
+                        (item.label === 'Hostel Students' && showHostelDropdown)
+                          ? 'rotate-90'
+                          : ''
                       }`}
                     />
                   )}
                 </Link>
-                {!effectiveIsCollapsed && item.hasDropdown && showStudentDropdown && item.label === 'Students' && (
-                  <div className="ml-8 mt-1 space-y-1 animate-fade-in">
-                    <Link
-                      to="/students/add"
-                      className={`block py-2 px-3 rounded-md text-sm font-medium ${
-                        isActive('/students/add') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      onClick={() => isMobile && setIsSidebarOpen(false)}
-                    >
+
+                {/* Library Students Dropdown */}
+                {!effectiveIsCollapsed && item.hasDropdown && item.label === 'Library Students' && showStudentDropdown && (
+                  <div className="ml-8 mt-1 space-y-1">
+                    <Link to="/students/add" className={`block py-2 px-3 rounded-md text-sm font-medium ${
+                      isActive('/students/add') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`}>
                       Add Student
                     </Link>
-                    <Link
-                      to="/students"
-                      className={`block py-2 px-3 rounded-md text-sm font-medium ${
-                        isActive('/students') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      onClick={() => isMobile && setIsSidebarOpen(false)}
-                    >
+                    <Link to="/students" className={`block py-2 px-3 rounded-md text-sm font-medium ${
+                      isActive('/students') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`}>
                       View All
                     </Link>
-                    <Link
-                      to="/active-students"
-                      className={`flex items-center py-2 px-3 rounded-md text-sm font-medium ${
-                        isActive('/active-students') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      onClick={() => isMobile && setIsSidebarOpen(false)}
-                    >
+                    <Link to="/active-students" className={`flex items-center py-2 px-3 rounded-md text-sm font-medium ${
+                      isActive('/active-students') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`}>
                       <UserCheck size={14} className="mr-1.5" />
                       Active Students
                     </Link>
-                    <Link
-                      to="/expired-memberships"
-                      className={`flex items-center py-2 px-3 rounded-md text-sm font-medium ${
-                        isActive('/expired-memberships')
-                          ? 'bg-purple-50 text-purple-600'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      onClick={() => isMobile && setIsSidebarOpen(false)}
-                    >
+                    <Link to="/expired-memberships" className={`flex items-center py-2 px-3 rounded-md text-sm font-medium ${
+                      isActive('/expired-memberships') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`}>
                       <AlertTriangle size={14} className="mr-1.5" />
                       Expired Members
                     </Link>
                   </div>
                 )}
-                {!effectiveIsCollapsed && item.hasDropdown && showHostelDropdown && item.label === 'Hostel' && (
-                  <div className="ml-8 mt-1 space-y-1 animate-fade-in">
-                    <Link
-                      to="/hostel"
-                      className={`block py-2 px-3 rounded-md text-sm font-medium ${
-                        isActive('/hostel') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      onClick={() => isMobile && setIsSidebarOpen(false)}
-                    >
+
+                {/* Hostel Students Dropdown */}
+                {!effectiveIsCollapsed && item.hasDropdown && item.label === 'Hostel Students' && showHostelDropdown && (
+                  <div className="ml-8 mt-1 space-y-1">
+                    <Link to="/hostel" className={`block py-2 px-3 rounded-md text-sm font-medium ${
+                      isActive('/hostel') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`}>
                       Students
+                    </Link>
+                    <Link to="/hostel-dashboard" className={`block py-2 px-3 rounded-md text-sm font-medium ${
+                      isActive('/hostel-dashboard') ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`}>
+                      Hostel Dashboard
                     </Link>
                   </div>
                 )}
@@ -170,6 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             ))}
           </ul>
         </nav>
+
         {!effectiveIsCollapsed && (
           <div className="p-4 mb-4 mx-4 bg-purple-100 rounded-lg">
             <p className="text-sm font-medium text-purple-600">Need help?</p>

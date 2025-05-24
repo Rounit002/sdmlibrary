@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import api from '../services/api';
-import { Search, ChevronLeft, ChevronRight, Trash2, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Trash2, Eye, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +21,7 @@ const AllStudents = () => {
   const [studentsPerPage, setStudentsPerPage] = useState(10);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // New state for sort direction
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,7 +54,18 @@ const AllStudents = () => {
     setCurrentPage(1);
   }, [searchTerm, fromDate, toDate]);
 
-  const filteredStudents = students.filter((student: any) =>
+  const handleSort = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  // Sort students based on createdAt
+  const sortedStudents = [...students].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
+  const filteredStudents = sortedStudents.filter((student: any) =>
     (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      student.phone.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -144,7 +156,15 @@ const AllStudents = () => {
                           <TableHead className="hidden md:table-cell">Phone</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="hidden md:table-cell">Membership End</TableHead>
-                          <TableHead className="hidden md:table-cell">Added On</TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            <button
+                              className="flex items-center gap-1 hover:text-purple-600"
+                              onClick={handleSort}
+                            >
+                              Added On
+                              {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                            </button>
+                          </TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
